@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriQueue | Smart Procurement & Queue Management</title>
+    <!-- Professional Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #15803d; /* Emerald 700 */
+            --primary-hover: #166534; /* Emerald 800 */
+            --primary-light: #dcfce7;
+            --surface: #ffffff;
+            --background: #f1f5f9; /* Slate 50 */
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body { background-color: var(--background); color: var(--text-main); line-height: 1.5; display: flex; flex-direction: column; min-height: 100vh; }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; }
+
+        /* Navbar */
+        header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; height: 72px; }
+        .logo { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo i { font-size: 1.5rem; }
+        
+        /* Live Clock Display */
+        .system-time { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 8px; background: var(--background); padding: 6px 12px; border-radius: 20px; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; cursor: pointer; border: none; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--background); }
+        .btn-success { background: var(--success); color: white; }
+
+        /* Router Classes */
+        .view { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .view.active { display: block; opacity: 1; animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        main { flex: 1; padding: 40px 0; }
+
+        /* Hero Section */
+        .hero { text-align: center; padding: 80px 20px; max-width: 800px; margin: 0 auto; }
+        .hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 24px; color: var(--text-main); line-height: 1.2; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { font-size: 1.125rem; color: var(--text-muted); margin-bottom: 40px; }
+
+        /* Auth Card */
+        .auth-card { background: var(--surface); max-width: 440px; margin: 40px auto; padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+        .auth-header { text-align: center; margin-bottom: 32px; }
+        .auth-header h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .demo-hint { background: var(--primary-light); color: var(--primary-hover); padding: 12px; border-radius: 8px; font-size: 0.875rem; margin-bottom: 24px; display: flex; gap: 10px; align-items: flex-start; }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 8px; color: var(--text-main); }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: all 0.2s; background: var(--surface); color: var(--text-main); }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
+
+        /* Dashboard Layouts */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+        .user-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--primary-light); color: var(--primary-hover); padding: 8px 16px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .card { background: var(--surface); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .card-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+
+        /* Progress Stepper */
+        .stepper-container { padding: 20px 0; margin-bottom: 24px; }
+        .stepper { display: flex; justify-content: space-between; position: relative; }
+        .stepper::before { content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: var(--border); z-index: 1; }
+        .step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+        .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600; color: var(--text-muted); transition: all 0.3s; }
+        .step.active .step-icon { border-color: var(--primary); background: var(--primary); color: white; }
+        .step.completed .step-icon { border-color: var(--success); background: var(--success); color: white; }
+        .step-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .step.active .step-label { color: var(--primary); }
+        .step.completed .step-label { color: var(--success); }
+
+        /* Notifications Panel */
+        .notification { background: var(--background); border-left: 4px solid var(--primary); padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; font-size: 0.875rem; display: flex; flex-direction: column; gap: 4px; }
+        .notif-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Admin Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); line-height: 1; margin-bottom: 8px; }
+        .stat-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; margin-top: 16px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+        th { background: var(--background); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+        tr:hover td { background: var(--background); }
+        
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-action { background: #e0f2fe; color: #0369a1; }
+
+        /* Footer */
+        footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; color: var(--text-muted); font-size: 0.875rem; background: var(--surface); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; color: var(--border); }
+    </style>
+</head>
+<body>
+
+    <!-- Professional Navbar -->
+    <header>
+        <div class="container nav-content">
+            <a class="logo" id="brandLogo">
+                <i class="fa-solid fa-wheat-awn"></i> AgriQueue
+            </a>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div class="system-time" id="systemClock">
+                    <i class="fa-regular fa-clock"></i> <span>Loading...</span>
+                </div>
+                <div id="navAuthSection">
+                    <button id="navLoginBtn" class="btn btn-primary">Login / Register</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- VIEW 1: LANDING PAGE -->
+        <section id="view-home" class="view active">
+            <div class="hero">
+                <h1>Smart Procurement & <br><span>Queue Management</span></h1>
+                <p>An enterprise-grade platform to eliminate long waiting lines, provide transparent scheduling, and ensure direct, real-time payment tracking for farmers at procurement centers.</p>
+                <button id="ctaLoginBtn" class="btn btn-primary" style="font-size: 1.125rem; padding: 14px 32px;">
+                    Access Portal <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 2: AUTHENTICATION -->
+        <section id="view-login" class="view">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Secure Portal Login</h2>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Enter your details to continue.</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="nameInput">Full Name</label>
+                        <input type="text" id="nameInput" class="form-control" placeholder="e.g. Ramesh Kumar" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneInput">Mobile Number (10 Digits)</label>
+                        <input type="tel" id="phoneInput" class="form-control" placeholder="e.g. 9876543210" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Generate Secure OTP <i class="fa-solid fa-shield-halved"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 3: FARMER DASHBOARD -->
+        <section id="view-farmer" class="view">
+            <div class="dashboard-header">
+                <div>
+                    <h2 style="font-size: 1.5rem;">Farmer Workspace</h2>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Manage your harvest drops and track payments.</p>
+                </div>
+                <span id="farmerUserBadge" class="user-badge"></span>
+            </div>
+
+            <!-- Dynamic Stepper Tracker -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-title"><i class="fa-solid fa-route"></i> Live Tracking Status</div>
+                <div class="stepper-container">
+                    <div class="stepper" id="progressStepper">
+                        <!-- Injected via JS based on state -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Booking Form -->
+                <div class="card">
+                    <div class="card-title"><i class="fa-regular fa-calendar-check"></i> Schedule Drop-off</div>
+                    <form id="bookingForm">
+                        <div class="form-group">
+                            <label for="cropType">Produce / Crop Type</label>
+                            <select id="cropType" class="form-control" required>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Pulses">Pulses</option>
+                                <option value="Maize">Maize</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bookingDate">Schedule Date</label>
+                            <input type="date" id="bookingDate" class="form-control" required>
+                            <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; display: block;">*Restricted to current operating calendar year.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeSlot">Arrival Time Slot</label>
+                            <select id="timeSlot" class="form-control" required>
+                                <option value="09:00 AM - 10:00 AM">Morning: 09:00 AM - 12:00 AM</option>
+                                <option value="11:00 AM - 12:00 PM">Midday: 12:00 AM - 03:00 PM</option>
+                                <option value="02:00 PM - 03:00 PM">Afternoon: 03:00 PM - 06:00 PM</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="bookSlotBtn">
+                            Confirm Booking <i class="fa-solid fa-check"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Notifications & Tickets -->
+                <div class="card">
+                    <div class="card-title"><i class="fa-regular fa-bell"></i> Center Updates & Token</div>
+                    
+                    <div id="ticketContainer" style="text-align: center; padding: 20px 0; border-bottom: 1px dashed var(--border); margin-bottom: 20px;">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <h4 style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase;">Recent Alerts</h4>
+                    <div id="notificationLog">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: ADMIN DASHBOARD -->
+        <section id="view-admin" class="view">
+            <div class="dashboard-header">
+                <div>
+                    <h2 style="font-size: 1.5rem;">Procurement Center Operations</h2>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Manage queues, quality checks, and clearing payments.</p>
+                </div>
+                <span class="user-badge" style="background: var(--text-main); color: white;">
+                    <i class="fa-solid fa-user-shield"></i> Admin: Station Alpha
+                </span>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Scheduled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPendingToken" style="color: var(--warning);">0</div>
+                    <div class="stat-label">Awaiting Token</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPendingQC" style="color: #0369a1;">0</div>
+                    <div class="stat-label">Pending QC</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCompleted" style="color: var(--success);">0</div>
+                    <div class="stat-label">Cleared & Paid</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-list-check"></i> Live Queue Master List</div>
+                <div class="table-container">
+                    <table id="adminTable">
+                        <thead>
+                            <tr>
+                                <th>Farmer Name / Phone</th>
+                                <th>Crop Detail</th>
+                                <th>Scheduled Time</th>
+                                <th>Gate Token</th>
+                                <th>Quality (QC)</th>
+                                <th>Financials</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsList">
+                            <!-- Dynamically generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <strong>AgriQueue Enterprise Solutions</strong> &copy; 2026. Built for transparency and supply chain optimization.
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. Global Clock System ---
+            const updateSystemClock = () => {
+                const clockEl = document.querySelector('#systemClock span');
+                const now = new Date();
+                clockEl.innerText = now.toLocaleString('en-IN', { 
+                    weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+            };
+            setInterval(updateSystemClock, 1000);
+            updateSystemClock();
+
+            // --- 2. State Management (Simulated Database) ---
+            // Upgraded storage key to v3 to accommodate the new user name data structure securely
+            const getAppState = () => JSON.parse(localStorage.getItem('agri_app_state_v3')) || { currentUser: null, bookings: [], users: {} };
+            const saveAppState = (state) => localStorage.setItem('agri_app_state_v3', JSON.stringify(state));
+
+            // Utility to format date strictly to human readable DD-MM-YYYY
+            const formatDate = (dateStr) => {
+                if(!dateStr) return '';
+                const parts = dateStr.split('-');
+                if(parts.length !== 3) return dateStr;
+                return `${parts[2]}-${parts[1]}-${parts[0]}`; // From YYYY-MM-DD to DD-MM-YYYY
+            };
+
+            // --- 3. Routing Engine ---
+            const switchView = (viewId) => {
+                document.querySelectorAll('.view').forEach(v => {
+                    v.classList.remove('active');
+                    v.style.display = 'none';
+                });
+                const activeView = document.getElementById(viewId);
+                activeView.style.display = 'block';
+                // Slight delay to trigger CSS animation
+                setTimeout(() => activeView.classList.add('active'), 10);
+
+                const state = getAppState();
+                const navSection = document.getElementById('navAuthSection');
+
+                if (state.currentUser) {
+                    navSection.innerHTML = `<button id="logoutBtn" class="btn btn-outline"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>`;
+                    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+                } else {
+                    navSection.innerHTML = `<button id="navLoginBtn" class="btn btn-primary"><i class="fa-solid fa-user"></i> Login</button>`;
+                    document.getElementById('navLoginBtn').addEventListener('click', () => switchView('view-login'));
+                }
+
+                if (viewId === 'view-farmer') initFarmerPortal();
+                if (viewId === 'view-admin') initAdminPortal();
+            };
+
+            const initAppRouter = () => {
+                const state = getAppState();
+                if (!state.currentUser) switchView('view-home');
+                else if (state.currentUser === '9999999999') switchView('view-admin');
+                else switchView('view-farmer');
+            };
+
+            // Navigation Listeners
+            document.getElementById('brandLogo').addEventListener('click', initAppRouter);
+            const ctaBtn = document.getElementById('ctaLoginBtn');
+            if (ctaBtn) ctaBtn.addEventListener('click', () => switchView('view-login'));
+
+            // --- 4. Authentication ---
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nameVal = document.getElementById('nameInput').value.trim();
+                const phoneVal = document.getElementById('phoneInput').value.trim();
+                
+                let state = getAppState();
+                state.currentUser = phoneVal;
+                
+                // Store user's name mapped to their phone number
+                if (!state.users) state.users = {};
+                state.users[phoneVal] = nameVal;
+
+                saveAppState(state);
+
+                document.getElementById('nameInput').value = '';
+                document.getElementById('phoneInput').value = '';
+                initAppRouter();
+            });
+
+            const handleLogout = () => {
+                let state = getAppState();
+                state.currentUser = null;
+                saveAppState(state);
+                switchView('view-home');
+            };
+
+            // --- 5. Farmer Portal Logic ---
+            const initFarmerPortal = () => {
+                const state = getAppState();
+                const userName = (state.users && state.users[state.currentUser]) ? state.users[state.currentUser] : 'Farmer';
+                
+                document.getElementById('farmerUserBadge').innerHTML = `<i class="fa-solid fa-user"></i> ${userName} &nbsp;|&nbsp; <i class="fa-solid fa-mobile-screen"></i> +91 ${state.currentUser}`;
+
+                // Strict Date Enforcement: Min = Today, Max = End of Next Year
+                const dateInput = document.getElementById('bookingDate');
+                const now = new Date();
+                dateInput.min = now.toISOString().split('T')[0];
+                const nextYear = new Date(now.getFullYear() + 1, 11, 31);
+                dateInput.max = nextYear.toISOString().split('T')[0];
+
+                renderFarmerData();
+            };
+
+            document.getElementById('bookingForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                let state = getAppState();
+                const phone = state.currentUser;
+                const rawDate = document.getElementById('bookingDate').value;
+                const userName = (state.users && state.users[phone]) ? state.users[phone] : 'Unknown';
+
+                // Create booking object
+                const newBooking = {
+                    phone: phone,
+                    name: userName, // Saving name alongside booking details
+                    crop: document.getElementById('cropType').value,
+                    date: rawDate,
+                    time: document.getElementById('timeSlot').value,
+                    token: "Pending",
+                    quality: "Pending",
+                    payment: "Not Initiated",
+                    timestamp: new Date().toISOString()
+                };
+
+                let existingIndex = state.bookings.findIndex(b => b.phone === phone);
+                if (existingIndex !== -1) {
+                    const existing = state.bookings[existingIndex];
+                    // Prevent overwriting if already in processing/paid state
+                    if(existing.payment === "Credited") {
+                        alert("Your previous cycle is complete. Starting a new booking.");
+                        state.bookings[existingIndex] = newBooking;
+                    } else {
+                        // Just update schedule
+                        newBooking.token = existing.token;
+                        newBooking.quality = existing.quality;
+                        newBooking.payment = existing.payment;
+                        state.bookings[existingIndex] = newBooking;
+                    }
+                } else {
+                    state.bookings.push(newBooking);
+                }
+
+                saveAppState(state);
+                renderFarmerData();
+                
+                // Animate button feedback
+                const btn = document.getElementById('bookSlotBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `Saved! <i class="fa-solid fa-check-double"></i>`;
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                }, 2000);
+            });
+
+            const renderFarmerData = () => {
+                const state = getAppState();
+                const b = state.bookings.find(b => b.phone === state.currentUser);
+
+                const stepperEl = document.getElementById('progressStepper');
+                const ticketEl = document.getElementById('ticketContainer');
+                const logEl = document.getElementById('notificationLog');
+
+                if (!b) {
+                    // Empty State
+                    stepperEl.innerHTML = `
+                        <div class="step"><div class="step-icon">1</div><div class="step-label">Booked</div></div>
+                        <div class="step"><div class="step-icon">2</div><div class="step-label">Token</div></div>
+                        <div class="step"><div class="step-icon">3</div><div class="step-label">QC Pass</div></div>
+                        <div class="step"><div class="step-icon">4</div><div class="step-label">Paid</div></div>
+                    `;
+                    ticketEl.innerHTML = `<p style="color: var(--text-muted); font-size: 0.875rem;">No active gate token. Submit a schedule request.</p>`;
+                    logEl.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No recent activity</p></div>`;
+                    return;
+                }
+
+                // Pre-fill form if existing
+                document.getElementById('cropType').value = b.crop;
+                document.getElementById('bookingDate').value = b.date;
+                document.getElementById('timeSlot').value = b.time;
+
+                // 1. Calculate Progress Stage
+                let step = 1; // Booked
+                if (b.token !== "Pending") step = 2;
+                if (b.quality === "Approved") step = 3;
+                if (b.payment === "Credited") step = 4;
+
+                // Render Stepper
+                stepperEl.innerHTML = `
+                    <div class="step ${step >= 1 ? (step > 1 ? 'completed' : 'active') : ''}">
+                        <div class="step-icon"><i class="fa-solid ${step > 1 ? 'fa-check' : 'fa-calendar-check'}"></i></div>
+                        <div class="step-label">Booked</div>
+                    </div>
+                    <div class="step ${step >= 2 ? (step > 2 ? 'completed' : 'active') : ''}">
+                        <div class="step-icon"><i class="fa-solid ${step > 2 ? 'fa-check' : 'fa-ticket'}"></i></div>
+                        <div class="step-label">Token</div>
+                    </div>
+                    <div class="step ${step >= 3 ? (step > 3 ? 'completed' : 'active') : ''}">
+                        <div class="step-icon"><i class="fa-solid ${step > 3 ? 'fa-check' : 'fa-microscope'}"></i></div>
+                        <div class="step-label">QC Pass</div>
+                    </div>
+                    <div class="step ${step >= 4 ? 'completed' : ''}">
+                        <div class="step-icon"><i class="fa-solid ${step >= 4 ? 'fa-check-double' : 'fa-building-columns'}"></i></div>
+                        <div class="step-label">Paid</div>
+                    </div>
+                `;
+
+                // 2. Render Ticket Area
+                if (b.token !== "Pending") {
+                    ticketEl.innerHTML = `
+                        <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Gate Entry Token</p>
+                        <h1 style="color: var(--primary); font-size: 3rem; margin: 5px 0; letter-spacing: 2px;">${b.token}</h1>
+                        <span class="badge badge-success">Verified Active</span>
+                    `;
+                } else {
+                    ticketEl.innerHTML = `
+                        <div style="font-size: 2.5rem; color: var(--border);"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 10px;">Awaiting Center Assignment</p>
+                    `;
+                }
+
+                // 3. Render Notifications Log (Simulated)
+                let logsHTML = '';
+                const timeStr = new Date(b.timestamp).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+                const dateFmt = formatDate(b.date);
+
+                if (step >= 4) {
+                    logsHTML += `<div class="notification"><span class="notif-time">Just Now</span><strong>💳 Payment Initiated</strong>PFMS transfer successful. Funds will reflect in registered bank shortly.</div>`;
+                }
+                if (step >= 3) {
+                    logsHTML += `<div class="notification"><span class="notif-time">Prior Update</span><strong>✅ Quality Check Passed</strong>Crop meets center standards. Payment processing queue joined.</div>`;
+                }
+                if (step >= 2) {
+                    logsHTML += `<div class="notification"><span class="notif-time">Prior Update</span><strong>🎟️ Token Assigned</strong>Please present Token ${b.token} at the gate on ${dateFmt} between ${b.time}.</div>`;
+                }
+                // Base log
+                logsHTML += `<div class="notification"><span class="notif-time">${timeStr}</span><strong>📅 Slot Confirmed</strong>Booking for ${b.crop} received. Awaiting admin review.</div>`;
+                
+                logEl.innerHTML = logsHTML;
+            };
+
+            // --- 6. Admin Control Panel Logic ---
+            const initAdminPortal = () => renderAdminTable();
+
+            // Admin Actions exposed to window for onclick handlers
+            window.adminAction = (actionType, phone) => {
+                let state = getAppState();
+                let b = state.bookings.find(item => item.phone === phone);
+                if (!b) return;
+
+                if (actionType === 'TOKEN') {
+                    // Generate sequential readable token (e.g., TKN-042)
+                    let maxTokenNum = 0;
+                    state.bookings.forEach(bk => {
+                        if(bk.token && bk.token.startsWith('TKN-')) {
+                            const num = parseInt(bk.token.replace('TKN-', ''), 10);
+                            if(num > maxTokenNum) maxTokenNum = num;
+                        }
+                    });
+                    b.token = `TKN-${String(maxTokenNum + 1).padStart(3, '0')}`;
+                } 
+                else if (actionType === 'QC') {
+                    b.quality = "Approved";
+                    b.payment = "Pending Release";
+                } 
+                else if (actionType === 'PAY') {
+                    b.payment = "Credited";
+                }
+
+                saveAppState(state);
+                renderAdminTable();
+            };
+
+            const renderAdminTable = () => {
+                const state = getAppState();
+                const tbody = document.getElementById('bookingsList');
+                
+                // Compute Stats
+                let t_total = state.bookings.length;
+                let t_pendingToken = 0;
+                let t_pendingQC = 0;
+                let t_completed = 0;
+
+                tbody.innerHTML = '';
+
+                if (t_total === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No active bookings in the system.</p></div></td></tr>`;
+                } else {
+                    state.bookings.forEach((b) => {
+                        const tr = document.createElement('tr');
+                        const displayDate = formatDate(b.date);
+
+                        // Track Stats
+                        if (b.token === "Pending") t_pendingToken++;
+                        else if (b.quality !== "Approved") t_pendingQC++;
+                        else if (b.payment === "Credited") t_completed++;
+
+                        // Build Action Cells
+                        const tokenCell = b.token === "Pending" 
+                            ? `<span class="badge badge-pending">Pending</span>` 
+                            : `<strong style="color: var(--primary); font-family: monospace; font-size: 1rem;">${b.token}</strong>`;
+
+                        const qcCell = b.quality === "Approved"
+                            ? `<span class="badge badge-success"><i class="fa-solid fa-check"></i> Passed</span>`
+                            : `<span class="badge badge-pending">Awaiting</span>`;
+
+                        const payCell = b.payment === "Credited"
+                            ? `<span class="badge badge-success">Cleared</span>`
+                            : (b.quality === "Approved" ? `<span class="badge badge-pending">Queued</span>` : `<span style="color:var(--text-muted); font-size:0.75rem;">N/A</span>`);
+
+                        // Build Primary Action Button
+                        let primaryAction = '';
+                        if (b.token === "Pending") {
+                            primaryAction = `<button onclick="adminAction('TOKEN', '${b.phone}')" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">Assign Gate Token</button>`;
+                        } else if (b.quality !== "Approved") {
+                            primaryAction = `<button onclick="adminAction('QC', '${b.phone}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem; background: #0369a1;">Approve Quality</button>`;
+                        } else if (b.payment !== "Credited") {
+                            primaryAction = `<button onclick="adminAction('PAY', '${b.phone}')" class="btn btn-success" style="padding: 6px 12px; font-size: 0.75rem;">Release Payout</button>`;
+                        } else {
+                            primaryAction = `<span style="color: var(--success); font-weight: 600; font-size: 0.875rem;"><i class="fa-solid fa-check-double"></i> Complete</span>`;
+                        }
+
+                        // Determine the name to display in the admin table
+                        const displayName = b.name || (state.users && state.users[b.phone]) || 'Unknown User';
+
+                        tr.innerHTML = `
+                            <td>
+                                <strong>${displayName}</strong><br>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">+91 ${b.phone}</span>
+                            </td>
+                            <td><span class="badge" style="background: var(--border); color: var(--text-main);">${b.crop}</span></td>
+                            <td>
+                                <div style="font-weight: 500;">${displayDate}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${b.time}</div>
+                            </td>
+                            <td>${tokenCell}</td>
+                            <td>${qcCell}</td>
+                            <td>${payCell}</td>
+                            <td>${primaryAction}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Update Stat Cards
+                document.getElementById('statTotal').innerText = t_total;
+                document.getElementById('statPendingToken').innerText = t_pendingToken;
+                document.getElementById('statPendingQC').innerText = t_pendingQC;
+                document.getElementById('statCompleted').innerText = t_completed;
+            };
+
+            // Execute Initialization
+            initAppRouter();
+        });
+    </script>
+</body>
+</html>
