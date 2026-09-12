@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriQueue | Procurement Center Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Top Navigation -->
+    <nav class="bg-white px-8 py-4 flex justify-between items-center border-b border-gray-200">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-leaf text-green-600 text-xl"></i>
+            <span class="text-green-600 font-bold text-xl tracking-tight">AgriQueue</span>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-2 border border-gray-200 px-3 py-1.5 rounded-md bg-gray-50">
+                <i class="fa-regular fa-clock"></i>
+                <span id="current-time">Thu, 10 Sept, 2026, 07:55:53 pm</span>
+            </div>
+            <button onclick="handleLogout()" class="flex items-center gap-2 border border-gray-200 px-3 py-1.5 rounded-md bg-white hover:bg-gray-50 font-medium transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="px-8 py-6 max-w-[1400px] mx-auto">
+        
+        <!-- Header Section -->
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Procurement Center Operations</h1>
+                <p class="text-gray-500 text-sm mt-1">Manage queues, quality checks, and clearing payments.</p>
+            </div>
+            <button onclick="handleAdminProfile()" class="bg-slate-900 hover:bg-slate-800 transition-colors text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-user"></i>
+              Admin: Debuggers
+            </button>
+        </div>
+
+        <!-- Statistics Cards (Reset to 0 since list is empty) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 text-center">
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                <span id="stat-total" class="text-4xl font-bold text-gray-800">0</span>
+                <span class="text-gray-500 text-sm mt-2 font-medium">Total Scheduled</span>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                <span id="stat-awaiting" class="text-4xl font-bold text-orange-400">0</span>
+                <span class="text-gray-500 text-sm mt-2 font-medium">Awaiting Token</span>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                <span id="stat-pending" class="text-4xl font-bold text-blue-500">0</span>
+                <span class="text-gray-500 text-sm mt-2 font-medium">Pending QC</span>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                <span id="stat-cleared" class="text-4xl font-bold text-green-500">0</span>
+                <span class="text-gray-500 text-sm mt-2 font-medium">Cleared & Paid</span>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <!-- Table Header -->
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                <i class="fa-solid fa-list-ul text-gray-500"></i>
+                <h2 class="font-semibold text-gray-800">Live Queue Master List</h2>
+            </div>
+            
+            <!-- Table Data -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 font-semibold tracking-wider uppercase">
+                            <th class="px-6 py-4">Farmer Name / Phone</th>
+                            <th class="px-6 py-4">Crop Detail</th>
+                            <th class="px-6 py-4">Scheduled Time</th>
+                            <th class="px-6 py-4">Gate Token</th>
+                            <th class="px-6 py-4">Quality (QC)</th>
+                            <th class="px-6 py-4">Financials</th>
+                            <th class="px-6 py-4">Action</th>
+                        </tr>
+                    </thead>
+                    <!-- Emptied the saved things -->
+                    <tbody id="queue-body" class="text-sm divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fa-regular fa-folder-open text-3xl mb-3 text-gray-300"></i>
+                                <p>No active farmers in the queue currently.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-400 text-xs py-8 pb-12">
+        AgriQueue Enterprise Solutions © 2026. Built for transparency and supply chain optimization.
+    </footer>
+
+    <!-- Interactive Scripts to make UI functional -->
+    <script>
+        // Update top navigation clock dynamically
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+
+        // Button Functions
+        function handleLogout() {
+            if(confirm("Are you sure you want to log out of the Procurement Dashboard?")) {
+                alert("Logging out successfully...");
+                // window.location.href = 'login.html'; // Redirect to login page in real app
+            }
+        }
+
+        function handleAdminProfile() {
+            alert("Opening Admin Settings for Station Alpha...");
+        }
+
+        // Example function for when a row action button exists
+        function handleApproveQuality(tokenId) {
+            alert("Initiating Quality Check approval process for token: " + tokenId);
+            // Logic to update row status would go here
+        }
+    </script>
+</body>
+</html>
